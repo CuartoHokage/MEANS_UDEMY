@@ -9,27 +9,15 @@ var app=express();
 
 
 //cargar archivos de rutas
-
+var user_routes= require('./routes/user');
 //middlewares
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 //cors
 
 //reescribir rutas
-app.get('/prueba', (req, res)=>{
-    return res.status(200).send("<h1>Hola Bryan :v esta peticion es por GET</h1>");
-   /* return res.status(200).send({
-        message: 'Hola Bryan'
-    });*/
-});
+app.use('/api', user_routes);
 
-app.post('/prueba', (req, res)=>{
-    return res.status(200).send({
-        nombre: 'Jaime',
-        message: 'Hola esta Peticion es por POST'
-    });
-   
-});
 //exportar modulo
 module.exports=app;
 //comentario
