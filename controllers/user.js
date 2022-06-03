@@ -3,6 +3,8 @@ const res = require('express/lib/response');
 var validator= require('validator');
 var bcrypt= require('bcrypt-nodejs');
 var User= require('../models/user');
+var jwt= require('../services/jwt');
+const { param } = require('../routes/user');
 var controller={
     probando: function(req, res){
         return res.status(200).send({
@@ -86,6 +88,71 @@ var controller={
         }
 
         
+    },
+    login: function(req, res){
+        //Recoger los parametros de una peticion
+        var params= req.body;
+
+        //Validar los datos
+        var validate_email=!validator.isEmpty(params.email) && validator.isEmail(params.email);
+        var validate_password=!validator.isEmpty(params.password);
+
+        if(!validate_email || !validate_password){
+            return res.status(200).send({
+                message: 'Los datos son incorrectos, favor enviarlos bien'
+            });
+        }
+        //Buscar usuarios que coincidan con el email
+        User.findOne({email: params.email.toLowerCase()}, (err, user)=>{
+            if(err){
+                return res.status(500).send({
+                    message: "Error al intentar identificarse"
+                });    
+            }
+            if(!user){
+                return res.status(404).send({
+                    message: "Usuario no existe"
+                });
+            }
+            //Si encuentra 
+            //Comprobar la contraseña (coincidencia de email y password / bcrypt)
+            bcrypt.compare(params.password, user.password, (err, check)=>{
+                //si es correcto 
+                if(check){
+                    //Generar toket jwt y devolver luego
+                    if(params.gettoken){
+                        return res.status(200).send({
+                            token: jwt.createToken(user)
+                        });
+                    }
+                    else{
+                        //Limpiar el objeto user 
+                        user.password=undefined;
+                        //Devolver los datos
+                        return res.status(200).send({
+                            status: "Success",
+                            user
+                        });
+                    }
+                    
+                }
+                else{
+                    return res.status(200).send({
+                        message: "Credeciales incorrectas"
+                    });
+                }
+                
+            });
+            
+        });
+            
+    },
+    update: function(req, res){
+        return res.status(200).send({
+            //Crear middleware para comprobar el jwt token, ponerselo a la ruta
+            
+            message: 'Metodo de actualizacion'
+        })
     }
 };
 
